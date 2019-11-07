@@ -1,31 +1,64 @@
 package com.ics.admin;
 
 import android.app.Activity;
+import android.app.Dialog;
 import android.content.Context;
+import android.content.Intent;
+import android.os.AsyncTask;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ExpandableListView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.ics.admin.MainAdapters.MenuExpandableAdapter;
+import com.ics.admin.Models.Faculties;
+import com.ics.admin.Models.MenuPermisssion;
+import com.ics.admin.Models.SubMenuPermissions;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+
+import javax.net.ssl.HttpsURLConnection;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
 public class FacultyAdapter extends RecyclerView.Adapter<FacultyAdapter.MyViewHolder> {
 
-
-    ArrayList Names;
+    ArrayList<Faculties> facultiesArrayList = new ArrayList<>();
+    ArrayList<MenuPermisssion>menuPermisssionheaderList = new ArrayList<>();
+    ArrayList<String>menuPermisssionheaderListStrings = new ArrayList<>();
+    ArrayList<SubMenuPermissions> menuPermissionsSubList= new ArrayList<>();
+HashMap<String, List<SubMenuPermissions>> menuPermissionsSubListHash = new HashMap<>();
+    MenuExpandableAdapter menuExpandableAdapter;
     ArrayList<Integer> Images;
    FacultyFragment activity;
 
-    public FacultyAdapter(FacultyFragment activity, ArrayList Names, ArrayList<Integer> Images)
+    public FacultyAdapter(FacultyFragment activity, ArrayList facultiesArrayList)
     {
         this.activity = activity;
-        this.Names = Names;
-        this.Images = Images;
+        this.facultiesArrayList = facultiesArrayList;
+
 
     }@NonNull
     @Override
@@ -36,28 +69,349 @@ public class FacultyAdapter extends RecyclerView.Adapter<FacultyAdapter.MyViewHo
     }
 
     @Override
-    public void onBindViewHolder(@NonNull FacultyAdapter.MyViewHolder myViewHolder, int i) {
-        myViewHolder.name.setText(""+Names.get(i));
-        myViewHolder.circleimageview.setImageResource(Images.get(i));
+    public void onBindViewHolder(@NonNull FacultyAdapter.MyViewHolder myViewHolder, final int i) {
+        myViewHolder.factname.setText(""+facultiesArrayList.get(i).getName());
+        myViewHolder.factnumber.setText(""+facultiesArrayList.get(i).getMobile());
+        myViewHolder.address.setText(""+facultiesArrayList.get(i).getAddress());
+//        myViewHolder.circleimageview.setImageResource(Images.get(i));
+        myViewHolder.assignjob.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+              Intent intent = new Intent(view.getContext() , FaculttyPermission.class);
+                 view.getContext().startActivity(intent);
+                //showpermissions(view);
+            }
+        });
+    }
 
+    private void showpermissions(final View view) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(view.getContext());
+        LayoutInflater li = (LayoutInflater) view.getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+//        LayoutInflater inflater = getLayoutInflater();
+        View dialogLayout = li.inflate(R.layout.facultypermissiondialog, null);
+//
+//        rolesexpand.setonc
+        builder.setPositiveButton("OK", null);
+        builder.setView(dialogLayout);
+        builder.show();
     }
 
     @Override
     public int getItemCount()
     {
-        return Images.size();
+        return facultiesArrayList.size();
     }
 
     public class MyViewHolder extends RecyclerView.ViewHolder {
         public CircleImageView circleimageview;
         TextView name;
-
+        TextView factname;
+        TextView factnumber;
+        TextView address;
+        LinearLayout assignjob;
 
         public MyViewHolder(@NonNull View itemView) {
             super(itemView);
 
-            name = (TextView) itemView.findViewById(R.id.name);
-            circleimageview=(CircleImageView)itemView.findViewById(R.id.circleimageview);
+//            name = (TextView) itemView.findViewById(R.id.name);
+            factname = (TextView) itemView.findViewById(R.id.factname);
+            factnumber = (TextView) itemView.findViewById(R.id.factnumber);
+            address = (TextView) itemView.findViewById(R.id.address);
+            assignjob =  itemView.findViewById(R.id.assignjob);
+//            rolesexpand = (TextView) itemView.findViewById(R.id.rolesexpand);
+//            circleimageview=(CircleImageView)itemView.findViewById(R.id.circleimageview);
+        }
+    }
+
+    private class GetAllPermissions extends AsyncTask<String, Void, String> {
+        String Name;
+        String Phone_Number;
+        String Email;
+        String Password;
+        String Address;
+        private Dialog dialog;
+        ExpandableListView rolesexpand;
+        public GetAllPermissions(ExpandableListView rolesexpand) {
+            this.rolesexpand = rolesexpand;
+        }
+
+
+        @Override
+        protected String doInBackground(String... arg0) {
+
+            try {
+
+                URL url = new URL("http://ihisaab.in/school_lms/Adminapi/getmenulist");
+
+                JSONObject postDataParams = new JSONObject();
+
+                postDataParams.put("user_id", "2");
+
+                Log.e("postDataParams", postDataParams.toString());
+
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                conn.setReadTimeout(15000 /*milliseconds*/);
+                conn.setConnectTimeout(15000 /*milliseconds*/);
+                conn.setRequestMethod("POST");
+                conn.setDoInput(true);
+                conn.setDoOutput(true);
+
+                OutputStream os = conn.getOutputStream();
+                BufferedWriter writer = new BufferedWriter(
+                        new OutputStreamWriter(os, "UTF-8"));
+                writer.write(getPostDataString(postDataParams));
+
+                writer.flush();
+                writer.close();
+                os.close();
+
+                int responseCode = conn.getResponseCode();
+
+                if (responseCode == HttpsURLConnection.HTTP_OK) {
+
+                    BufferedReader in = new BufferedReader(new
+                            InputStreamReader(
+                            conn.getInputStream()));
+
+                    StringBuffer sb = new StringBuffer("");
+                    String line = "";
+
+                    while ((line = in.readLine()) != null) {
+
+                        StringBuffer Ss = sb.append(line);
+                        Log.e("Ss", Ss.toString());
+                        sb.append(line);
+                        break;
+                    }
+
+                    in.close();
+                    return sb.toString();
+
+                } else {
+                    return new String("false : " + responseCode);
+                }
+            } catch (Exception e) {
+                return new String("Exception: " + e.getMessage());
+            }
+
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            if (result != null) {
+//                dialog.dismiss();
+
+                JSONObject jsonObject = null;
+                Log.e("PostRegistration", result.toString());
+                try {
+
+                    jsonObject = new JSONObject(result);
+                    if(!jsonObject.getBoolean("responce")){
+                        //    getotp.setVisibility(View.VISIBLE);
+//                        Intent
+                    }
+                    else
+                    {
+                        for(int i=0;i<jsonObject.getJSONArray("data").length();i++)
+                        {
+                            JSONObject jsonObject1 = jsonObject.getJSONArray("data").getJSONObject(i);
+                            String  permission_id =jsonObject1.getString("permission_id");
+                            String  menu_id =jsonObject1.getString("menu_id");
+                            String  menu_name =jsonObject1.getString("menu_name");
+                            menuPermisssionheaderListStrings.add(menu_name);
+                            Log.e("menu_name name",""+menu_name);
+                            menuPermisssionheaderList.add(new MenuPermisssion(permission_id,menu_id,menu_name));
+
+                        }
+                        int k=0;
+                        for(;k<menuPermisssionheaderList.size();k++)
+                        {
+                            new GETSubMenu(k,menuPermisssionheaderList.get(k).getMenu_name(),menuPermisssionheaderList.get(k).getMenu_id() ,2).execute();
+                        }
+                        if(k >=menuPermisssionheaderList.size() ) {
+                            menuExpandableAdapter = new MenuExpandableAdapter(activity.getContext(), menuPermisssionheaderList, menuPermisssionheaderListStrings, menuPermissionsSubListHash);
+                            rolesexpand.setAdapter(menuExpandableAdapter);
+                            menuExpandableAdapter.notifyDataSetChanged();
+                            rolesexpand.requestLayout();
+                        }
+                    }
+
+
+                } catch (JSONException e) {
+
+                    e.printStackTrace();
+                }
+
+            }
+        }
+
+        public String getPostDataString(JSONObject params) throws Exception {
+
+            StringBuilder result = new StringBuilder();
+            boolean first = true;
+
+            Iterator<String> itr = params.keys();
+
+            while (itr.hasNext()) {
+
+                String key = itr.next();
+                Object value = params.get(key);
+
+                if (first)
+                    first = false;
+                else
+                    result.append("&");
+
+                result.append(URLEncoder.encode(key, "UTF-8"));
+                result.append("=");
+                result.append(URLEncoder.encode(value.toString(), "UTF-8"));
+
+            }
+            return result.toString();
+        }
+    }
+
+    private class GETSubMenu extends AsyncTask<String, Void, String> {
+        String menu_id;
+        int user_id;
+        String menu_name;
+        int position;
+
+        public GETSubMenu(int k, String menu_name, String menu_id, int user_id) {
+            this.menu_id = menu_id;
+            this.menu_name = menu_name;
+            this.user_id = user_id;
+            this.position = k;
+        }
+
+
+        @Override
+        protected String doInBackground(String... arg0) {
+
+            try {
+
+                URL url = new URL("http://ihisaab.in/school_lms/Adminapi/getsubmenulist");
+
+                JSONObject postDataParams = new JSONObject();
+
+                postDataParams.put("user_id", user_id);
+                postDataParams.put("menu_id", menu_id);
+
+                Log.e("postDataParams", postDataParams.toString());
+
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                conn.setReadTimeout(15000 /*milliseconds*/);
+                conn.setConnectTimeout(15000 /*milliseconds*/);
+                conn.setRequestMethod("POST");
+                conn.setDoInput(true);
+                conn.setDoOutput(true);
+
+                OutputStream os = conn.getOutputStream();
+                BufferedWriter writer = new BufferedWriter(
+                        new OutputStreamWriter(os, "UTF-8"));
+                writer.write(getPostDataString(postDataParams));
+
+                writer.flush();
+                writer.close();
+                os.close();
+
+                int responseCode = conn.getResponseCode();
+
+                if (responseCode == HttpsURLConnection.HTTP_OK) {
+
+                    BufferedReader in = new BufferedReader(new
+                            InputStreamReader(
+                            conn.getInputStream()));
+
+                    StringBuffer sb = new StringBuffer("");
+                    String line = "";
+
+                    while ((line = in.readLine()) != null) {
+
+                        StringBuffer Ss = sb.append(line);
+                        Log.e("Ss", Ss.toString());
+                        sb.append(line);
+                        break;
+                    }
+
+                    in.close();
+                    return sb.toString();
+
+                } else {
+                    return new String("false : " + responseCode);
+                }
+            } catch (Exception e) {
+                return new String("Exception: " + e.getMessage());
+            }
+
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            if (result != null) {
+//                dialog.dismiss();
+
+                JSONObject jsonObject = null;
+                Log.e("PostRegistration", result.toString());
+                try {
+
+                    jsonObject = new JSONObject(result);
+                    if (!jsonObject.getBoolean("responce")) {
+                        //    getotp.setVisibility(View.VISIBLE);
+//                        Intent
+                    } else {
+                        int i = 0;
+                        for (; i < jsonObject.getJSONArray("data").length(); i++) {
+                            JSONObject jsonObject1 = jsonObject.getJSONArray("data").getJSONObject(i);
+                            String permission_id = jsonObject1.getString("permission_id");
+                            String submenu = jsonObject1.getString("submenu");
+//                            String menu_name = jsonObject1.getString("menu_name");
+                            Log.e("submenu name",""+submenu);
+                            menuPermissionsSubList.add(position , new SubMenuPermissions(permission_id, submenu));
+
+                        }
+//                        if(position>= menuPermisssionheaderList.size()) {
+                        if(i>=jsonObject.getJSONArray("data").length()) {
+                            menuPermissionsSubListHash.put(menuPermisssionheaderListStrings.get(position), menuPermissionsSubList);
+                        }
+
+//                        }else {
+                            Toast.makeText(activity.getContext(), "position is"+position, Toast.LENGTH_SHORT).show();
+//                        }
+                    }
+
+
+                } catch (JSONException e) {
+
+                    e.printStackTrace();
+                }
+
+            }
+        }
+
+        public String getPostDataString(JSONObject params) throws Exception {
+
+            StringBuilder result = new StringBuilder();
+            boolean first = true;
+
+            Iterator<String> itr = params.keys();
+
+            while (itr.hasNext()) {
+
+                String key = itr.next();
+                Object value = params.get(key);
+
+                if (first)
+                    first = false;
+                else
+                    result.append("&");
+
+                result.append(URLEncoder.encode(key, "UTF-8"));
+                result.append("=");
+                result.append(URLEncoder.encode(value.toString(), "UTF-8"));
+
+            }
+            return result.toString();
         }
     }
 }

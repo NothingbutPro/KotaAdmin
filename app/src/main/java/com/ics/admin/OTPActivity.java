@@ -31,7 +31,7 @@ import javax.net.ssl.HttpsURLConnection;
 public class OTPActivity extends AppCompatActivity {
     EditText getotp, mobile;
     Button getotpbtn;
-
+    public static int Admin_id;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
