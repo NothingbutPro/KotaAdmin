@@ -1,5 +1,6 @@
 package com.ics.admin;
 
+import android.app.Activity;
 import android.app.Dialog;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
@@ -66,6 +67,7 @@ public class FaculttyPermission extends AppCompatActivity {
                 JSONObject postDataParams = new JSONObject();
 
                 postDataParams.put("user_id", "2");
+                postDataParams.put("teacher_id", getIntent().getStringExtra("teacher_id"));
 
                 Log.e("postDataParams", postDataParams.toString());
 
@@ -138,7 +140,8 @@ public class FaculttyPermission extends AppCompatActivity {
                             String  permission_id =jsonObject1.getString("permission_id");
                             String  menu_id =jsonObject1.getString("menu_id");
                             String  menu_name =jsonObject1.getString("menu_name");
-                            menuPermisssionList.add(new MenuPermisssion(permission_id,menu_id,menu_name));
+                            String  status =jsonObject1.getString("status");
+                            menuPermisssionList.add(new MenuPermisssion(permission_id,menu_id,menu_name,status));
 //sdf
                         }
                         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(FaculttyPermission.this);

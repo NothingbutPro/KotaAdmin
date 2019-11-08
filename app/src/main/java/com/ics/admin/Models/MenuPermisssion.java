@@ -4,6 +4,16 @@ public class MenuPermisssion {
     String  permission_id;
     String  menu_id;
     String  menu_name ;
+    String  status ;
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+
 
     public String getPermission_id() {
         return permission_id;
@@ -29,9 +39,10 @@ public class MenuPermisssion {
         this.menu_name = menu_name;
     }
 
-    public MenuPermisssion(String permission_id, String menu_id, String menu_name) {
+    public MenuPermisssion(String permission_id, String menu_id, String menu_name ,String status) {
         this.permission_id = permission_id;
         this.menu_id = menu_id;
         this.menu_name = menu_name;
+        this.status = status;
     }
 }

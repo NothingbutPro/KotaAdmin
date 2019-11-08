@@ -1,5 +1,6 @@
 package com.ics.admin.MainAdapters;
 
+import android.app.Activity;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.os.StrictMode;
@@ -9,8 +10,10 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.ToggleButton;
 
 import com.ics.admin.Models.MenuPermisssion;
 import com.ics.admin.Models.SubMenuPermissions;
@@ -60,6 +63,22 @@ public class SubPermissionAdapter extends RecyclerView.Adapter<SubPermissionAdap
         menuPermisssion = menuPermisssionList.get(position);
         this.pos_try = position;
         holder.namestff.setText(menuPermisssionList.get(position).getMenu_id());
+        if(menuPermisssion.getStatus().equals("null"))
+        {
+            holder.permtoggel.setChecked(false);
+        }else {
+            holder.permtoggel.setChecked(true);
+        }
+        holder.permtoggel.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if(isChecked) {
+                    new PostPermission("2",menuPermisssionList.get(position).getSub_id(), "1").execute();
+                }else {
+                    new PostPermission("2",menuPermisssionList.get(position).getSub_id(), "whatever").execute();
+                }
+            }
+        });
 //        holder.emailstff.setText(menuPermisssion.getEmail());
 //        holder.stffid.setText(menuPermisssion.getDesignation());
 //        Glide.with(mContext).load("http://neareststore.in/uploads/staff/" + addNews141.getImage()).addListener(new RequestListener<Drawable>() {
@@ -78,6 +97,7 @@ public class SubPermissionAdapter extends RecyclerView.Adapter<SubPermissionAdap
 //        searching_manufacturers_data = menuPermisssionList.get(pos_try);
 //        Log.e("Position","is "+pos_try);
 //        document = searching_manufacturers_data.getBrandName();
+
         StrictMode.setVmPolicy(builder.build());
 
     }
@@ -94,7 +114,7 @@ public class SubPermissionAdapter extends RecyclerView.Adapter<SubPermissionAdap
     }
 
     public class MyViewHolder extends RecyclerView.ViewHolder {
-        ImageView stffimg;
+        ToggleButton permtoggel;
         TextView namestff, emailstff, stffid;
 
 
@@ -103,6 +123,7 @@ public class SubPermissionAdapter extends RecyclerView.Adapter<SubPermissionAdap
             //   mname = (TextView) itemView.findViewById(R.id.mname);
             // manu_img =  itemView.findViewById(R.id.manu_img);
             namestff = itemView.findViewById(R.id.names);
+            permtoggel = itemView.findViewById(R.id.permtoggel);
 
             //     adddes =  itemView.findViewById(R.id.adddes);
 
@@ -133,7 +154,7 @@ public class SubPermissionAdapter extends RecyclerView.Adapter<SubPermissionAdap
 
                 JSONObject postDataParams = new JSONObject();
 
-                postDataParams.put("user_id", user_id);
+                postDataParams.put("user_id", ((Activity)mContext).getIntent().getStringExtra("teacher_id"));
                 postDataParams.put("menu_id", menu_id);
 
                 Log.e("postDataParams", postDataParams.toString());
@@ -209,6 +230,142 @@ public class SubPermissionAdapter extends RecyclerView.Adapter<SubPermissionAdap
 //                            menuPermissionsSubList.add(position , new SubMenuPermissions(permission_id, submenu));
 
                         }
+//
+                    }
+
+
+                } catch (JSONException e) {
+
+                    e.printStackTrace();
+                }
+
+            }
+        }
+
+        public String getPostDataString(JSONObject params) throws Exception {
+
+            StringBuilder result = new StringBuilder();
+            boolean first = true;
+
+            Iterator<String> itr = params.keys();
+
+            while (itr.hasNext()) {
+
+                String key = itr.next();
+                Object value = params.get(key);
+
+                if (first)
+                    first = false;
+                else
+                    result.append("&");
+
+                result.append(URLEncoder.encode(key, "UTF-8"));
+                result.append("=");
+                result.append(URLEncoder.encode(value.toString(), "UTF-8"));
+
+            }
+            return result.toString();
+        }
+    }
+
+    private class PostPermission extends AsyncTask<String, Void, String> {
+        String menu_id;
+        String user_id;
+        String menu_name;
+        String isChecked;
+
+        public PostPermission(String user_id, String menu_id, String isChecked) {
+            this.isChecked=isChecked;
+            this.user_id=user_id;
+            this.menu_id=menu_id;
+        }
+
+//        public PostPermission( String menu_name, String menu_id, int user_id) {
+//            this.menu_id = menu_id;
+//            this.menu_name = menu_name;
+//            this.user_id = user_id;
+//
+//        }
+
+
+        @Override
+        protected String doInBackground(String... arg0) {
+
+            try {
+
+                URL url = new URL("http://ihisaab.in/school_lms/Adminapi/add_submenupermission");
+
+                JSONObject postDataParams = new JSONObject();
+
+                postDataParams.put("user_id", ((Activity)mContext).getIntent().getStringExtra("teacher_id"));
+                postDataParams.put("sub_id", menu_id);
+                postDataParams.put("status", isChecked);
+
+                Log.e("postDataParams", postDataParams.toString());
+
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                conn.setReadTimeout(15000 /*milliseconds*/);
+                conn.setConnectTimeout(15000 /*milliseconds*/);
+                conn.setRequestMethod("POST");
+                conn.setDoInput(true);
+                conn.setDoOutput(true);
+
+                OutputStream os = conn.getOutputStream();
+                BufferedWriter writer = new BufferedWriter(
+                        new OutputStreamWriter(os, "UTF-8"));
+                writer.write(getPostDataString(postDataParams));
+
+                writer.flush();
+                writer.close();
+                os.close();
+
+                int responseCode = conn.getResponseCode();
+
+                if (responseCode == HttpsURLConnection.HTTP_OK) {
+
+                    BufferedReader in = new BufferedReader(new
+                            InputStreamReader(
+                            conn.getInputStream()));
+
+                    StringBuffer sb = new StringBuffer("");
+                    String line = "";
+
+                    while ((line = in.readLine()) != null) {
+
+                        StringBuffer Ss = sb.append(line);
+                        Log.e("Ss", Ss.toString());
+                        sb.append(line);
+                        break;
+                    }
+
+                    in.close();
+                    return sb.toString();
+
+                } else {
+                    return new String("false : " + responseCode);
+                }
+            } catch (Exception e) {
+                return new String("Exception: " + e.getMessage());
+            }
+
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            if (result != null) {
+//                dialog.dismiss();
+
+                JSONObject jsonObject = null;
+                Log.e("PostRegistration", result.toString());
+                try {
+
+                    jsonObject = new JSONObject(result);
+                    if (!jsonObject.getBoolean("responce")) {
+                        //    getotp.setVisibility(View.VISIBLE);
+//                        Intent
+                    } else {
+                        int i = 0;
+//                        notifyDataSetChanged();
 //
                     }
 

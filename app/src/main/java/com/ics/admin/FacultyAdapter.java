@@ -78,6 +78,7 @@ HashMap<String, List<SubMenuPermissions>> menuPermissionsSubListHash = new HashM
             @Override
             public void onClick(View view) {
               Intent intent = new Intent(view.getContext() , FaculttyPermission.class);
+              intent.putExtra("teacher_id",facultiesArrayList.get(i).getUserId());
                  view.getContext().startActivity(intent);
                 //showpermissions(view);
             }
@@ -218,9 +219,10 @@ HashMap<String, List<SubMenuPermissions>> menuPermissionsSubListHash = new HashM
                             String  permission_id =jsonObject1.getString("permission_id");
                             String  menu_id =jsonObject1.getString("menu_id");
                             String  menu_name =jsonObject1.getString("menu_name");
+                            String  status =jsonObject1.getString("status");
                             menuPermisssionheaderListStrings.add(menu_name);
                             Log.e("menu_name name",""+menu_name);
-                            menuPermisssionheaderList.add(new MenuPermisssion(permission_id,menu_id,menu_name));
+                            menuPermisssionheaderList.add(new MenuPermisssion(permission_id,menu_id,menu_name,status));
 
                         }
                         int k=0;
@@ -365,9 +367,10 @@ HashMap<String, List<SubMenuPermissions>> menuPermissionsSubListHash = new HashM
                             JSONObject jsonObject1 = jsonObject.getJSONArray("data").getJSONObject(i);
                             String permission_id = jsonObject1.getString("permission_id");
                             String submenu = jsonObject1.getString("submenu");
+                            String status = jsonObject1.getString("status");
 //                            String menu_name = jsonObject1.getString("menu_name");
                             Log.e("submenu name",""+submenu);
-                            menuPermissionsSubList.add(position , new SubMenuPermissions(permission_id, submenu));
+                            menuPermissionsSubList.add(position , new SubMenuPermissions(permission_id, submenu,status,"mainstatus","sdfsdf"));
 
                         }
 //                        if(position>= menuPermisssionheaderList.size()) {

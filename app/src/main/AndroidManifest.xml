@@ -12,7 +12,11 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".FaculttyPermission"></activity>
+        <activity
+            android:name=".Activities_by_Parag.Faculty_Dashoard"
+            android:label="@string/title_activity_faculty__dashoard"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
+        <activity android:name=".FaculttyPermission" />
         <activity android:name=".AddFacultyActivity" />
         <activity android:name=".OTPActivity" />
         <activity android:name=".LoginActivity" />

@@ -1,19 +1,30 @@
-package com.ics.admin;
+package com.ics.admin.Activities_by_Parag;
 
 import android.app.Dialog;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
-import android.text.Editable;
-import android.text.TextWatcher;
+import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
+
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
+import androidx.navigation.ui.AppBarConfiguration;
+import androidx.navigation.ui.NavigationUI;
+
+import android.support.design.widget.NavigationView;
+import android.support.v4.widget.DrawerLayout;
+
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
+import android.view.Menu;
 import android.widget.Toast;
 
-import com.ics.admin.Activities_by_Parag.Faculty_Dashoard;
+import com.ics.admin.AdminActivity;
+import com.ics.admin.OTPActivity;
+import com.ics.admin.R;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -30,71 +41,61 @@ import java.util.Iterator;
 
 import javax.net.ssl.HttpsURLConnection;
 
-public class OTPActivity extends AppCompatActivity {
-    EditText getotp, mobile;
-    Button getotpbtn;
-    public static int Admin_id;
-    public static String Faculty_id;
+import static com.ics.admin.OTPActivity.Faculty_id;
+
+public class Faculty_Dashoard extends AppCompatActivity {
+
+    private AppBarConfiguration mAppBarConfiguration;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_otp);
-
-        getotp = findViewById(R.id.getotp);
-        mobile = findViewById(R.id.mobile);
-        getotpbtn = findViewById(R.id.getotpbtn);
-        getotp.setVisibility(View.GONE);
-
-        getotpbtn.setOnClickListener(new View.OnClickListener() {
+        setContentView(R.layout.activity_faculty__dashoard);
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        FloatingActionButton fab = findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
-
-
-               if(getotpbtn.getText().toString().equals("Login")) {
-                   new Verifyotp(getotp.getText().toString(),mobile.getText().toString()).execute();
-               }
-        else {
-
-
-               }
-                }
-
-
-
-
-
-        });
-        mobile.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                if (s.toString().length() == 10 || s.toString().length() == 12) {
-                    new GetOtp(s.toString()).execute();
-                }
-                else
-                    {
-                    Log.e("no" , ""+s.toString().length());
-                }
-
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-
+            public void onClick(View view) {
+                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+                        .setAction("Action", null).show();
             }
         });
+        new GETALLMYPERMISSIONS(Faculty_id).execute();
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
+        NavigationView navigationView = findViewById(R.id.fact_nav_view);
+        // Passing each menu ID as a set of Ids because each
+        // menu should be considered as top level destinations.
+        mAppBarConfiguration = new AppBarConfiguration.Builder(
+                R.id.nav_home, R.id.nav_gallery, R.id.nav_slideshow,
+                R.id.nav_tools, R.id.nav_share, R.id.nav_send)
+                .setDrawerLayout(drawer)
+                .build();
+        NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
+        NavigationUI.setupActionBarWithNavController(this, navController, mAppBarConfiguration);
+        NavigationUI.setupWithNavController(navigationView, navController);
     }
 
-    private class GetOtp extends AsyncTask<String, Void, String> {
-        String Mobile_Number;
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.faculty__dashoard, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onSupportNavigateUp() {
+        NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
+        return NavigationUI.navigateUp(navController, mAppBarConfiguration)
+                || super.onSupportNavigateUp();
+    }
+
+    private class GETALLMYPERMISSIONS extends AsyncTask<String, Void, String> {
+        String Faculty_id;
         private Dialog dialog;
 
-        public GetOtp(String toString) {
-            this.Mobile_Number = toString;
+        public GETALLMYPERMISSIONS(String Faculty_id) {
+            this.Faculty_id = Faculty_id;
         }
 
         @Override
@@ -102,10 +103,11 @@ public class OTPActivity extends AppCompatActivity {
 
             try {
 
-                URL url = new URL("http://ihisaab.in/school_lms/Adminapi/sendotp");
+                URL url = new URL("http://ihisaab.in/school_lms/Adminapi/getmenulist");
 
                 JSONObject postDataParams = new JSONObject();
-                postDataParams.put("mobile", Mobile_Number);
+                postDataParams.put("user_id", Faculty_id);
+                postDataParams.put("teacher_id", "4");
 
 
                 Log.e("postDataParams", postDataParams.toString());
@@ -170,13 +172,9 @@ public class OTPActivity extends AppCompatActivity {
                     if(!jsonObject.getBoolean("responce")){
 //                       Intent intent = new Intent(OTPActivity.this , LoginActivity.class);
 //                       startActivity(intent);
-                       Toast.makeText(getApplication(),"You are not registerd"+result, Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getApplication(),"You are not registerd"+result, Toast.LENGTH_SHORT).show();
                     }else {
-                        getotp.setVisibility(View.VISIBLE);
-                        String otp= jsonObject.getString("data");
-                        getotp.setText(otp);
-                        getotpbtn.setText("Login");
-                        getotpbtn.setVisibility(View.VISIBLE);
+
                     }
 
 
@@ -229,11 +227,11 @@ public class OTPActivity extends AppCompatActivity {
 
             try {
 
-                URL url = new URL("http://ihisaab.in/school_lms/Adminapi/login");
+                URL url = new URL("http://ihisaab.in/school_lms/Adminapi/getmenulist");
 
                 JSONObject postDataParams = new JSONObject();
-                postDataParams.put("otp", Mobile_Number);
-                postDataParams.put("mobile", mobile.getText().toString());
+                postDataParams.put("user_id", Mobile_Number);
+//                postDataParams.put("mobile", mobile.getText().toString());
 
 
                 Log.e("postDataParams", postDataParams.toString());
@@ -296,17 +294,17 @@ public class OTPActivity extends AppCompatActivity {
 
                     jsonObject = new JSONObject(result);
                     if(!jsonObject.getBoolean("responce")){
-                       getotp.setVisibility(View.VISIBLE);
-                      Toast.makeText(getApplication(),"strong OTP"+result, Toast.LENGTH_SHORT).show();
+//                        getotp.setVisibility(View.VISIBLE);
+                        Toast.makeText(getApplication(),"strong OTP"+result, Toast.LENGTH_SHORT).show();
                     }else {
                         String type = jsonObject.getJSONObject("data").getString("type");
-                         Faculty_id = jsonObject.getJSONObject("data").getString("user_id");
+                        String Faculty_id = jsonObject.getJSONObject("data").getString("type");
                         if(type.equals("1")) {
-                            Intent intent1 = new Intent(OTPActivity.this, AdminActivity.class);
+                            Intent intent1 = new Intent(Faculty_Dashoard.this, AdminActivity.class);
                             startActivity(intent1);
                             finish();
                         }else {
-                            Intent intent1 = new Intent(OTPActivity.this, Faculty_Dashoard.class);
+                            Intent intent1 = new Intent(Faculty_Dashoard.this, Faculty_Dashoard.class);
                             startActivity(intent1);
                             finish();
                         }
@@ -347,4 +345,3 @@ public class OTPActivity extends AppCompatActivity {
         }
     }
 }
-
