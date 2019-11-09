@@ -4,9 +4,13 @@ import android.app.Dialog;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.design.widget.BottomNavigationView;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 
 import androidx.navigation.NavController;
@@ -20,12 +24,17 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
+import android.widget.ExpandableListView;
 import android.widget.Toast;
 
 import com.ics.admin.AdminActivity;
+import com.ics.admin.MainAdapters.MenuExpandableAdapter;
+import com.ics.admin.Models.MenuPermisssion;
+import com.ics.admin.Models.SubMenuPermissions;
 import com.ics.admin.OTPActivity;
 import com.ics.admin.R;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -37,7 +46,10 @@ import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 
 import javax.net.ssl.HttpsURLConnection;
 
@@ -46,14 +58,29 @@ import static com.ics.admin.OTPActivity.Faculty_id;
 public class Faculty_Dashoard extends AppCompatActivity {
 
     private AppBarConfiguration mAppBarConfiguration;
+    private BottomNavigationView bottom_nav_view;
+    NavigationView navigationView;
+    //for expandable
+     public List<String> _MenuPermisssionslistDataHeader = new ArrayList<>();
+    ArrayList<SubMenuPermissions> menuPermissionsSubList= new ArrayList<>();
+    ArrayList<String> menuPermissionsSubListString= new ArrayList<>();
+     public ArrayList<MenuPermisssion> menuPermisssionheaderListStrings;
+    ArrayList<String>menuPermisssionheaderList = new ArrayList<>();
+    public HashMap<SubMenuPermissions, List<SubMenuPermissions>> _ListHashMaplistDataChild = new HashMap<>();
+    RecyclerView navexpandable;
+    private MenuExpandableAdapter menuExpandableAdapter;
 
+    //
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_faculty__dashoard);
         Toolbar toolbar = findViewById(R.id.toolbar);
+//        new
         setSupportActionBar(toolbar);
         FloatingActionButton fab = findViewById(R.id.fab);
+        bottom_nav_view = (BottomNavigationView) findViewById(R.id.bottom_nav_view_fact);
+        navexpandable =  findViewById(R.id.navexpandable);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -61,9 +88,9 @@ public class Faculty_Dashoard extends AppCompatActivity {
                         .setAction("Action", null).show();
             }
         });
-        new GETALLMYPERMISSIONS(Faculty_id).execute();
+
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
-        NavigationView navigationView = findViewById(R.id.fact_nav_view);
+         navigationView = findViewById(R.id.fact_nav_view);
         // Passing each menu ID as a set of Ids because each
         // menu should be considered as top level destinations.
         mAppBarConfiguration = new AppBarConfiguration.Builder(
@@ -74,7 +101,11 @@ public class Faculty_Dashoard extends AppCompatActivity {
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
         NavigationUI.setupActionBarWithNavController(this, navController, mAppBarConfiguration);
         NavigationUI.setupWithNavController(navigationView, navController);
+        new GETALLMYPERMISSIONS(Faculty_id).execute();
+
     }
+
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -103,11 +134,12 @@ public class Faculty_Dashoard extends AppCompatActivity {
 
             try {
 
-                URL url = new URL("http://ihisaab.in/school_lms/Adminapi/getmenulist");
+                URL url = new URL("http://ihisaab.in/school_lms/Adminapi/getsidemenu");
 
                 JSONObject postDataParams = new JSONObject();
-                postDataParams.put("user_id", Faculty_id);
-                postDataParams.put("teacher_id", "4");
+//                postDataParams.put("user_id", OTPActivity.Faculty_id);
+                postDataParams.put("user_id",Faculty_id );
+//                postDataParams.put("teacher_id", "4");
 
 
                 Log.e("postDataParams", postDataParams.toString());
@@ -173,8 +205,57 @@ public class Faculty_Dashoard extends AppCompatActivity {
 //                       Intent intent = new Intent(OTPActivity.this , LoginActivity.class);
 //                       startActivity(intent);
                         Toast.makeText(getApplication(),"You are not registerd"+result, Toast.LENGTH_SHORT).show();
-                    }else {
+                    }
+                    else
+                    {
+                        String menu_name =null;
+                        SubMenuPermissions sUbMenuModel = null;
+                        for(int i=0;i<jsonObject.getJSONObject("data").length();i++)
+                        {
+                            JSONArray jsonArray = jsonObject.getJSONObject("data").getJSONArray("a"+i);
 
+                            for (int px=0;px<jsonArray.length();px++)
+                            {
+                                String menu_id = jsonArray.getJSONObject(px).getString("menu_id");
+                                 menu_name = jsonArray.getJSONObject(px).getString("menu_name");
+                                String submenu = jsonArray.getJSONObject(px).getString("submenu");
+                                 sUbMenuModel = new SubMenuPermissions(menu_id,menu_name,submenu);
+
+//                                menuPermissionsSubListString.
+                                if(px==0) {
+                                    menuPermissionsSubList.add(sUbMenuModel);
+//                                    _MenuPermisssionslistDataHeader.add(menu_name);
+
+                                }
+
+                            }
+//                            _ListHashMaplistDataChild.put(sUbMenuModel,menuPermissionsSubList);
+
+                        }
+//                        Log.e("full hash map",""+_ListHashMaplistDataChild.entrySet());
+                        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(Faculty_Dashoard.this);
+                        linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
+                        navexpandable.setLayoutManager(linearLayoutManager);
+                        menuExpandableAdapter = new MenuExpandableAdapter(Faculty_Dashoard.this, menuPermissionsSubList);
+                        navexpandable.setAdapter(menuExpandableAdapter);
+                        menuExpandableAdapter.notifyDataSetChanged();
+                        navexpandable.requestLayout();
+//                        for(int i=0;i<jsonObject.getJSONArray("data").length();i++)
+//                        {
+//                            JSONObject jsonObject1 = jsonObject.getJSONArray("data").getJSONObject(i);
+//                            String  permission_id =jsonObject1.getString("permission_id");
+//                            String  menu_id =jsonObject1.getString("menu_id");
+//                            String  menu_name =jsonObject1.getString("menu_name");
+//                            String  status =jsonObject1.getString("status");
+//                            if(i<5)
+//                            {
+//                                MenuItem fact1 = navigationView.findViewById(R.id.nav_home);
+//                                fact1.setTitle(""+menu_name);
+//
+//                            }
+////                            menuPermisssionList.add(new MenuPermisssion(permission_id,menu_id,menu_name,status));
+////sdf
+//                        }
                     }
 
 

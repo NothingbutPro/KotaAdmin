@@ -49,10 +49,10 @@ public class FacultyAdapter extends RecyclerView.Adapter<FacultyAdapter.MyViewHo
     ArrayList<MenuPermisssion>menuPermisssionheaderList = new ArrayList<>();
     ArrayList<String>menuPermisssionheaderListStrings = new ArrayList<>();
     ArrayList<SubMenuPermissions> menuPermissionsSubList= new ArrayList<>();
-HashMap<String, List<SubMenuPermissions>> menuPermissionsSubListHash = new HashMap<>();
+    HashMap<String, List<SubMenuPermissions>> menuPermissionsSubListHash = new HashMap<>();
     MenuExpandableAdapter menuExpandableAdapter;
     ArrayList<Integer> Images;
-   FacultyFragment activity;
+    FacultyFragment activity;
 
     public FacultyAdapter(FacultyFragment activity, ArrayList facultiesArrayList)
     {
@@ -231,8 +231,8 @@ HashMap<String, List<SubMenuPermissions>> menuPermissionsSubListHash = new HashM
                             new GETSubMenu(k,menuPermisssionheaderList.get(k).getMenu_name(),menuPermisssionheaderList.get(k).getMenu_id() ,2).execute();
                         }
                         if(k >=menuPermisssionheaderList.size() ) {
-                            menuExpandableAdapter = new MenuExpandableAdapter(activity.getContext(), menuPermisssionheaderList, menuPermisssionheaderListStrings, menuPermissionsSubListHash);
-                            rolesexpand.setAdapter(menuExpandableAdapter);
+//                            menuExpandableAdapter = new MenuExpandableAdapter(activity.getContext(), menuPermisssionheaderList, menuPermisssionheaderListStrings, menuPermissionsSubListHash);
+                    //        rolesexpand.setAdapter(menuExpandableAdapter);
                             menuExpandableAdapter.notifyDataSetChanged();
                             rolesexpand.requestLayout();
                         }

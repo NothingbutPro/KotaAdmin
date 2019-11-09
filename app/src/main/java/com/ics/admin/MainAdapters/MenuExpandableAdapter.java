@@ -1,14 +1,15 @@
 package com.ics.admin.MainAdapters;
 
+
 import android.app.Activity;
-import android.app.Dialog;
-import android.app.ProgressDialog;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Typeface;
 import android.os.AsyncTask;
+import android.os.StrictMode;
+import android.support.v7.app.AlertDialog;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -20,6 +21,7 @@ import android.view.Window;
 import android.widget.ArrayAdapter;
 import android.widget.BaseExpandableListAdapter;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.RadioButton;
@@ -32,6 +34,7 @@ import com.ics.admin.Models.MenuPermisssion;
 import com.ics.admin.Models.SubMenuPermissions;
 import com.ics.admin.R;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -51,153 +54,70 @@ import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.HttpsURLConnection;
 
-public class MenuExpandableAdapter extends BaseExpandableListAdapter {
-    private final List<String> _MenuPermisssionslistDataHeader;
-    private final ArrayList<MenuPermisssion> menuPermisssionheaderListStrings;
-    private final HashMap<String, List<SubMenuPermissions>> _ListHashMaplistDataChild;
-    //For Adapters
-    Context _context;
-    //
-    //++++++++++++++++++++++++++++++++++++++++All Initializations++++++++++++++++++++
-    Button addmantype, addmorekey, addmrdet, addmorepro, addmore_sub_serpro;
-    Spinner spicatpro, spinsubcat;
-    EditText Name;
-    RecyclerView newkey, addmoredet, addmorepay, showkeys, showmoredeatils, addepros, showpays;
-    EditText proname;
-    //    RecyclerView showkeys,newkey;
-    LayoutInflater infalInflater;
-    private View ExpandView;
-    private ToggleButton permtoggel;
-    private TextView names;
+public class MenuExpandableAdapter extends RecyclerView.Adapter<MenuExpandableAdapter.MyViewHolder> {
+    public static ArrayList<String> Myproducttiles = new ArrayList<>();
+    public List<SubMenuPermissions> menuPermisssionList;
+//    public List<SubMenuPermissions> subMenuPermisssionsList = new ArrayList<>();
+    SubPermissionAdapter subPermissionAdapter;
+    int pos_try;
+    StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();
+    private Context mContext;
+    private SubMenuPermissions menuPermisssion;
+    private RecyclerView subrec;
 
-    //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    public MenuExpandableAdapter(Context context, ArrayList<MenuPermisssion> menuPermisssionheaderListStrings,List<String> menuPermisssionList,
-                                 HashMap<String, List<SubMenuPermissions>> SubMenuListHashMap) {
-        this._context = context;
-        this._MenuPermisssionslistDataHeader = menuPermisssionList;
-        this._ListHashMaplistDataChild = SubMenuListHashMap;
-        this.menuPermisssionheaderListStrings = menuPermisssionheaderListStrings;
-
-    }
-
-
-
-    @Override
-    public Object getChild(int groupPosition, int childPosititon) {
-        return this._ListHashMaplistDataChild.get(this._MenuPermisssionslistDataHeader.get(groupPosition))
-                .get(childPosititon);
+    public MenuExpandableAdapter(Context context, ArrayList<SubMenuPermissions> menuPermisssion) {
+        mContext = context;
+        this.menuPermisssionList = menuPermisssion;
+        setHasStableIds(true);
     }
 
     @Override
-    public void onGroupExpanded(int groupPosition) {
-        //      Log.e("Expanded view" , "groupPosition"+groupPosition);
-//        if(groupPosition)
-//        View view1 = ;
-//        TextView names = ExpandView.findViewById(R.id.names);
-//        names.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                Toast.makeText(v.getContext(), "sfsdfsdf", Toast.LENGTH_SHORT).show();
-//            }
-//        });
-        super.onGroupExpanded(groupPosition);
+    public MenuExpandableAdapter.MyViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.subpermissionexpand, parent, false);
+        return new MenuExpandableAdapter.MyViewHolder(view);
     }
 
     @Override
-    public long getChildId(int groupPosition, int childPosition) {
-        return childPosition;
-    }
+    public void onBindViewHolder(final MenuExpandableAdapter.MyViewHolder holder, final int position) {
+        menuPermisssion = menuPermisssionList.get(position);
+        this.pos_try = position;
+        holder.namestff.setText(menuPermisssionList.get(position).getMenu_name());
 
-    @Override
-    public View getChildView(int groupPosition, final int childPosition,
-                             boolean isLastChild, View convertView, ViewGroup parent) {
-
-//      final String childText =  getChild(groupPosition, childPosition);
-
-        final SubMenuPermissions subMenuPermissions = (SubMenuPermissions) getChild(groupPosition, childPosition);
-        Log.e("childPosition", "is " + childPosition);
-        Log.e("groupPosition", "is groupPosition " + subMenuPermissions.getMenu_id());
-        int itemType = getChildType(groupPosition, childPosition);
-//        this.infalInflater = LayoutInflater.from(parent.getContext());
-//        convertView.re
-        LayoutInflater infalInflater = (LayoutInflater) this._context
-                .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-//            Toast.makeText(_context, "Basic", Toast.LENGTH_SHORT).show();
-            //+++++++++++++++++++++++++++++++++++++++++++++++++++++++
-            convertView = infalInflater.inflate(R.layout.subpermission, null);
-            convertView.requestFocus();
-
-            //++++++++++++++++++++++All Fields++++++++++++++++++++++++++++++++
-
-            //+++++++++++++++++++++++++End++++++++++++++++++++++++++++++++++++++++++++++++++
-//            proname =  convertView.findViewById(R.id.pronames);
-            permtoggel = convertView.findViewById(R.id.permtoggel);
-        names = convertView.findViewById(R.id.names);
-        names.setText(String.valueOf(subMenuPermissions.getMenu_id()));
-
-            return convertView;
-
-
+        StrictMode.setVmPolicy(builder.build());
 
     }
 
     @Override
-    public int getChildrenCount(int groupPosition) {
-        return this._ListHashMaplistDataChild.get(this._MenuPermisssionslistDataHeader.get(groupPosition))
-                .size();
+    public int getItemCount() {
+        return menuPermisssionList.size();
     }
 
     @Override
-    public Object getGroup(int groupPosition) {
-        return this._MenuPermisssionslistDataHeader.get(groupPosition);
+    public long getItemId(int position) {
+//        return super.getItemId(position);
+        return position;
     }
 
-    @Override
-    public int getGroupCount() {
-        return this._MenuPermisssionslistDataHeader.size();
-    }
+    public class MyViewHolder extends RecyclerView.ViewHolder {
+        ImageView stffimg;
+        TextView namestff, emailstff, stffid;
+        ToggleButton maintoggel;
 
-    @Override
-    public long getGroupId(int groupPosition) {
-        return groupPosition;
-    }
+        public MyViewHolder(View itemView) {
+            super(itemView);
+            //   mname = (TextView) itemView.findViewById(R.id.mname);
+            // manu_img =  itemView.findViewById(R.id.manu_img);
+            namestff = itemView.findViewById(R.id.lblListHeader);
+            maintoggel = itemView.findViewById(R.id.maintoggel);
 
-    @Override
-    public View getGroupView(int groupPosition, boolean isExpanded,
-                             View convertView, ViewGroup parent) {
-        String headerTitle = (String) getGroup(groupPosition);
-        this.ExpandView = convertView;
-        //   Log.e("groupPosition", "is " + groupPosition);
-        if (convertView == null) {
-//            if(headerTitle.equals("Basic Information")) {
-            Toast.makeText(_context, "BAsic", Toast.LENGTH_SHORT).show();
-            LayoutInflater infalInflater = (LayoutInflater) this._context
-                    .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            convertView = infalInflater.inflate(R.layout.menuinfogroup, null);
+            //     adddes =  itemView.findViewById(R.id.adddes);
+
 
         }
-
-        TextView lblListHeader = (TextView) convertView
-                .findViewById(R.id.lblListHeader);
-
-        lblListHeader.setTypeface(null, Typeface.BOLD);
-        lblListHeader.setText(headerTitle);
-        notifyDataSetChanged();
-        return convertView;
-    }
-
-    @Override
-    public boolean hasStableIds() {
-        return false;
-    }
-
-    @Override
-    public boolean isChildSelectable(int groupPosition, int childPosition) {
-        return true;
     }
 
 
 
-    ////////////////////////////////////////////////////////////////end of/////////////////////////
-    //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  
 }

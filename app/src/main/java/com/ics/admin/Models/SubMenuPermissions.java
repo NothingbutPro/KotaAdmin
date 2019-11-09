@@ -6,6 +6,18 @@ public class SubMenuPermissions {
     String  submenu;
     String  menu_name ;
     String  mainstatus ;
+    String  menu_id ;
+
+    public SubMenuPermissions(String menu_id, String menu_name, String submenu) {
+         this.menu_id =menu_id ;
+         this.menu_name =menu_name ;
+         this.submenu =submenu ;
+
+    }
+
+    public SubMenuPermissions(String menu_name) {
+        this.menu_name =menu_name ;
+    }
 
     public String getSub_id() {
         return sub_id;
