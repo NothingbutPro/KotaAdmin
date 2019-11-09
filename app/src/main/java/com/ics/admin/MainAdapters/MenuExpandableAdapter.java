@@ -83,7 +83,12 @@ public class MenuExpandableAdapter extends RecyclerView.Adapter<MenuExpandableAd
         menuPermisssion = menuPermisssionList.get(position);
         this.pos_try = position;
         holder.namestff.setText(menuPermisssionList.get(position).getMenu_name());
+        holder.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
 
+            }
+        });
         StrictMode.setVmPolicy(builder.build());
 
     }

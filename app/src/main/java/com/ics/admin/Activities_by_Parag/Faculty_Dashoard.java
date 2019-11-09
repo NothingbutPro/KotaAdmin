@@ -138,7 +138,7 @@ public class Faculty_Dashoard extends AppCompatActivity {
 
                 JSONObject postDataParams = new JSONObject();
 //                postDataParams.put("user_id", OTPActivity.Faculty_id);
-                postDataParams.put("user_id",Faculty_id );
+                postDataParams.put("user_id",Faculty_id);
 //                postDataParams.put("teacher_id", "4");
 
 
